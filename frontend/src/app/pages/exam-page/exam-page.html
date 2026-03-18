@@ -1,4 +1,24 @@
 <div class="exam-wrapper">
+    @if (showViolationsTerminated) {
+      <div class="violations-overlay">
+        <div class="violations-modal">
+          <div class="violations-icon">⚠</div>
+          <h3 class="violations-title">Exam Terminated</h3>
+          <p class="violations-message">Too many integrity violations were detected. Your exam has been submitted and this attempt has been recorded.</p>
+          <button type="button" class="btn-return" (click)="submitExam()">Return to exam list</button>
+        </div>
+      </div>
+    }
+
+    @if (fullscreenExited) {
+      <div class="fullscreen-overlay" (click)="reenterFullscreen()">
+        <div class="fullscreen-prompt" (click)="$event.stopPropagation()">
+          <p>You exited fullscreen. This has been recorded.</p>
+          <p>You must return to fullscreen to continue the exam.</p>
+          <button type="button" class="btn-reenter" (click)="reenterFullscreen()">Continue in fullscreen</button>
+        </div>
+      </div>
+    }
 
     <div class="exam-card">
   

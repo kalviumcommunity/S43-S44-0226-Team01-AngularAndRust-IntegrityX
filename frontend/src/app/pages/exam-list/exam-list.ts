@@ -1,31 +1,34 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { Api } from '../../services/api';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-exam-list',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './exam-list.html'
+  templateUrl: './exam-list.html',
+  styleUrl: './exam-list.css'
 })
-export class ExamListComponent implements OnInit {
+export class ExamListComponent {
 
-  exams: any[] = [];
+  exams$: Observable<any[]>;
 
   constructor(
     private api: Api,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
-
-  ngOnInit() {
-    this.api.getExams().subscribe((data: any) => {
-      console.log("EXAMS:", data);
-      this.exams = Array.isArray(data) ? data : (data?.exams ?? []);
-      this.cdr.detectChanges();
-    });
+    private router: Router
+  ) {
+    this.exams$ = this.api.getExams().pipe(
+      map((data: any) => {
+        const list = Array.isArray(data) ? data : (data?.exams ?? []);
+        console.log("EXAMS:", list);
+        return list;
+      }),
+      catchError(() => of([]))
+    );
   }
 
   startExam(id: number) {

@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './exam-page.html',
+  styleUrl: './exam-page.css'
 })
 export class ExamPageComponent implements OnInit {
   examId: number = 0;
@@ -19,6 +20,8 @@ export class ExamPageComponent implements OnInit {
   violations = 0;
   answer:string = ""; 
   examEnded = false;
+  fullscreenExited = false;
+  showViolationsTerminated = false;
   get formattedTime() {
     const minutes = Math.floor(this.timeLeft / 60);
     const seconds = this.timeLeft % 60;
@@ -38,17 +41,23 @@ export class ExamPageComponent implements OnInit {
     this.startTimer();
 
     if (typeof document !== 'undefined') {
-      document.onkeydown = function (e) {
-        if (e.ctrlKey || e.metaKey) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+        } else if (e.ctrlKey || e.metaKey) {
           e.preventDefault();
         }
       };
+      document.addEventListener('keydown', handleKeyDown, true);
       document.documentElement.requestFullscreen();
 
-      // Detect fullscreen exit
+      // On fullscreen exit: log and show overlay until user clicks to re-enter (browser only allows requestFullscreen on user gesture)
       document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement) {
+        if (!document.fullscreenElement && !this.examEnded) {
           this.logEvent('fullscreen_exit');
+          this.fullscreenExited = true;
+          this.cd.detectChanges();
         }
       });
 
@@ -117,6 +126,13 @@ export class ExamPageComponent implements OnInit {
     return (this.timeLeft % 60).toString().padStart(2, '0');
   }
 
+  reenterFullscreen() {
+    document.documentElement.requestFullscreen().then(() => {
+      this.fullscreenExited = false;
+      this.cd.detectChanges();
+    }).catch(() => {});
+  }
+
   logEvent(event: string) {
     if (this.examEnded) return; // stop further violations
 
@@ -134,14 +150,9 @@ export class ExamPageComponent implements OnInit {
 
     if (this.violations >= 5) {
       this.examEnded = true;
-
       clearInterval(this.timer);
-
-      if (typeof window !== 'undefined') {
-        alert("Too many violations. Exam terminated.");
-      }
-
-      this.submitExam();
+      this.showViolationsTerminated = true;
+      this.cd.detectChanges();
     }
   }
 }
