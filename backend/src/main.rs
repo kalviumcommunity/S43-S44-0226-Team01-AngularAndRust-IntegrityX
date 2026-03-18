@@ -11,6 +11,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tower_http::cors::CorsLayer;
 #[derive(Serialize)]
 struct HealthResponse {
     status: String,
@@ -76,7 +77,19 @@ async fn create_exam(
 
     Json("exam created")
 }
+async fn get_logs(
+    State(pool): State<Arc<PgPool>>,
+) -> Json<Vec<ActivityLog>> {
 
+    let logs = sqlx::query_as::<_,ActivityLog>(
+        "SELECT * FROM activity_logs"
+    )
+    .fetch_all(&*pool)
+    .await
+    .unwrap();
+
+    Json(logs)
+}
 async fn log_activity(
     State(pool): State<Arc<PgPool>>,
     Json(payload): Json<ActivityLogRequest>,
@@ -132,12 +145,14 @@ async fn main() {
         .expect("Failed to connec to the Database");
 
     let pool = Arc::new(pool);
-
+    let cors = CorsLayer::permissive();
     let app = Router::new()
         .route("/", get(root))
         .route("/api/activity", get(get_activity_logs).post(log_activity))
         .route("/api/exams", get(get_exams).post(create_exam))
         .route("/api/submissions", post(submit_exam))
+        .route("/api/logs", get(get_logs))
+        .layer(cors)
         .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

@@ -1,0 +1,33 @@
+<div class="exam-wrapper">
+
+    <div class="exam-card">
+  
+      <div class="top-bar">
+  
+        <div class="timer">
+          ⏱ {{timeLeftMinutes}}:{{timeLeftSeconds}}
+        </div>
+  
+        <div class="violations" [class.danger]="violations >=3">
+          ⚠ {{violations}} / 5
+        </div>
+  
+      </div>
+  
+      <h2 class="exam-title">Exam in Progress</h2>
+  
+      <textarea
+        class="answer-box"
+        placeholder="Write your answer here..."
+        [(ngModel)]="answer">
+      </textarea>
+  
+      <button
+        class="submit-btn"
+        (click)="submitExam()">
+        Submit Exam
+      </button>
+  
+    </div>
+  
+  </div>
