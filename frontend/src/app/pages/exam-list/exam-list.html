@@ -1,0 +1,16 @@
+<h1>IntegrityX Exam Platform</h1>
+
+<h2>Available Exams</h2>
+
+@for (exam of exams; track exam.id) {
+
+  <h3>{{ exam.title }}</h3>
+  <p>Duration: {{ exam.duration_minutes }} minutes</p>
+
+  <button (click)="startExam(exam.id)">
+    Start Exam
+  </button>
+
+  <hr>
+
+}
